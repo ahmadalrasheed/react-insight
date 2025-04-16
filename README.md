@@ -16,16 +16,16 @@ A powerful React performance monitoring component that helps you identify and fi
 ## Installation
 
 ```bash
-npm install react-optics
+npm install react-insight
 # or
-yarn add react-optics
+yarn add react-insight
 ```
 
 ## Quick Start
 
 ```jsx
 import React from 'react';
-import { PerformanceMonitor } from 'react-optics';
+import { PerformanceMonitor } from 'react-insight';
 
 function App() {
   return (
@@ -57,7 +57,7 @@ React Optics monitors several key performance metrics:
 Wrap your application with the `PerformanceMonitor` component:
 
 ```jsx
-import { PerformanceMonitor } from 'react-optics';
+import { PerformanceMonitor } from 'react-insight';
 
 function App() {
   return (

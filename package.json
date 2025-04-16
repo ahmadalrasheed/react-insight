@@ -1,10 +1,10 @@
 {
-  "name": "react-optics",
+  "name": "react-insight",
   "version": "1.0.0",
   "description": "A powerful React performance monitoring component that helps you identify and fix performance issues in your React applications",
   "author": "ahmadalrasheed",
   "license": "MIT",
-  "repository": "https://github.com/ahmadalrasheed/react-optics",
+  "repository": "https://github.com/ahmadalrasheed/react-insight",
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",
@@ -49,5 +49,5 @@
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
   },
-  "homepage": "https://github.com/ahmadalrasheed/react-optics#readme"
+  "homepage": "https://github.com/ahmadalrasheed/react-insight#readme"
 }

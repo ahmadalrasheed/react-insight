@@ -34,9 +34,6 @@ interface PerformanceData {
   };
 }
 
-interface PerformanceMonitorProps {
-  children: React.ReactNode;
-}
 
 // Performance monitoring utility functions
 const checkImagesAlt = () => {
@@ -232,7 +229,7 @@ const getScoreColor = (score: number): string => {
   return '#F44336';
 };
 
-export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({ children }) => {
+export const PerformanceMonitor: any= ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [performanceData, setPerformanceData] = useState(null as PerformanceData | null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

@@ -1,30 +1,104 @@
-# react-optics
+# React Optics
 
-> a lightweight React development tool to monitor and visualize your website performance in real-time
+A powerful React performance monitoring component that helps you identify and fix performance issues in your React applications.
 
-[![NPM](https://img.shields.io/npm/v/react-optics.svg)](https://www.npmjs.com/package/react-optics) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+![React Optics Demo](demo-screenshot.png)
 
-## Install
+## Features
+
+- 🔍 Real-time performance analysis
+- 📊 Comprehensive performance metrics
+- 🎯 Specific improvement suggestions
+- 🚀 Easy integration
+- 📱 Responsive design
+- 🎨 Customizable UI
+
+## Installation
 
 ```bash
-npm install --save react-optics
+npm install react-optics
+# or
+yarn add react-optics
 ```
 
-## Usage
+## Quick Start
 
 ```jsx
-import React, { Component } from 'react'
+import React from 'react';
+import { PerformanceMonitor } from 'react-optics';
 
-import MyComponent from 'react-optics'
-import 'react-optics/dist/index.css'
-
-class Example extends Component {
-  render() {
-    return <MyComponent />
-  }
+function App() {
+  return (
+    <PerformanceMonitor>
+      {/* Your app content */}
+      <div>Your React application</div>
+    </PerformanceMonitor>
+  );
 }
 ```
 
+## Performance Metrics
+
+React Optics monitors several key performance metrics:
+
+- **DOM Size**: Tracks the number of DOM elements and their depth
+- **Memory Usage**: Monitors JavaScript heap size
+- **Active Timers**: Counts active intervals and timeouts
+- **Event Listeners**: Tracks the number of event listeners
+- **Interaction Delay**: Measures UI responsiveness
+- **Network Requests**: Monitors pending network requests
+- **Layout Shifts**: Detects potential layout instability
+- **Image Optimization**: Checks for missing alt attributes and large images
+
+## Usage
+
+### Basic Usage
+
+Wrap your application with the `PerformanceMonitor` component:
+
+```jsx
+import { PerformanceMonitor } from 'react-optics';
+
+function App() {
+  return (
+    <PerformanceMonitor>
+      <YourApp />
+    </PerformanceMonitor>
+  );
+}
+```
+
+### Customization
+
+You can customize the appearance and behavior using CSS modules:
+
+```css
+/* Your custom styles */
+.container {
+  /* Override default styles */
+}
+```
+
+## Performance Score Calculation
+
+The performance score is calculated based on multiple factors:
+
+- DOM size (elements count and depth)
+- Memory usage
+- Active timers and event listeners
+- Interaction delay
+- Network requests
+- Layout shifts
+- Image optimization
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 ## License
 
-MIT © [ahmadalrasheed](https://github.com/ahmadalrasheed)
+MIT © Ahmad AlRasheed
+
+## Support
+
+If you find this package helpful, please consider giving it a star on GitHub!

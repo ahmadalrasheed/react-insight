@@ -1,8 +1,8 @@
-# React Optics
+# React Insight
 
 A powerful React performance monitoring component that helps you identify and fix performance issues in your React applications.
 
-![React Optics Demo](demo-screenshot.png)
+![React Insight Demo](demo-screenshot.png)
 
 ## Features
 
@@ -39,7 +39,7 @@ function App() {
 
 ## Performance Metrics
 
-React Optics monitors several key performance metrics:
+React Insight monitors several key performance metrics:
 
 - **DOM Size**: Tracks the number of DOM elements and their depth
 - **Memory Usage**: Monitors JavaScript heap size

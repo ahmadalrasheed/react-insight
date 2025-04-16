@@ -23,8 +23,8 @@ const App = () => {
     <PerformanceMonitor>
       <div className="app">
         <header>
-          <h1>React Optics Demo</h1>
-          <p>A demonstration of the React Optics performance monitoring library</p>
+          <h1>React Insight Demo</h1>
+          <p>A demonstration of the React Insight performance monitoring library</p>
         </header>
 
         <div className="controls">

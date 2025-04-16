@@ -49,5 +49,27 @@
     "react-dom": "^16.13.1",
     "react-scripts": "^3.4.1"
   },
-  "homepage": "https://github.com/ahmadalrasheed/react-insight#readme"
+  "homepage": "https://github.com/ahmadalrasheed/react-insight#readme",
+  "keywords": [
+    "react",
+    "performance",
+    "monitoring",
+    "debugging",
+    "development",
+    "tools",
+    "dev-tools",
+    "react-components",
+    "react-performance",
+    "web-performance",
+    "optimization",
+    "profiling",
+    "analytics",
+    "metrics",
+    "dom-size",
+    "memory-usage",
+    "layout-shifts",
+    "accessibility",
+    "react-hooks",
+    "typescript"
+  ]
 }

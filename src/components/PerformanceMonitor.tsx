@@ -229,7 +229,7 @@ const getScoreColor = (score: number): string => {
   return '#F44336';
 };
 
-export const PerformanceMonitor: any= ({ children }) => {
+export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [performanceData, setPerformanceData] = useState(null as PerformanceData | null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);

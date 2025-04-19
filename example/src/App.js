@@ -1,10 +1,15 @@
-import React, { useState } from 'react'
-import PerformanceMonitor from './components/PerformanceMonitor'
-
+import React, { useEffect, useState } from 'react'
+import {PerformanceMonitor} from './components/PerformanceMonitor.tsx';
 const App = () => {
   const [items, setItems] = useState([])
   const [showImages, setShowImages] = useState(false)
+  const [showShiftBanner, setShowShiftBanner] = useState(false);
 
+  /* --- trigger CLS after first paint --- */
+  useEffect(() => {
+    const id = setTimeout(() => setShowShiftBanner(true), 2000); // 2 s delay
+    return () => clearTimeout(id);
+  }, []);
   // Function to add many DOM elements (performance issue)
   const addManyElements = () => {
     const newItems = Array.from({ length: 1000 }, (_, i) => ({
@@ -22,6 +27,38 @@ const App = () => {
   return (
     <PerformanceMonitor>
       <div className="app">
+      {showShiftBanner && <div>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+  <p>hi hi hi </p>
+</div>}
         <header>
           <h1>React Insight Demo</h1>
           <p>A demonstration of the React Insight performance monitoring library</p>

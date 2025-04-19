@@ -1,0 +1,227 @@
+.PerformanceMonitor_container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.PerformanceMonitor_analyzeButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.PerformanceMonitor_analyzeButton:hover {
+  background-color: #1976D2;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.PerformanceMonitor_analyzeButton:disabled {
+  background-color: #BDBDBD;
+  cursor: not-allowed;
+}
+
+.PerformanceMonitor_buttonIcon {
+  margin-right: 8px;
+  font-size: 16px;
+}
+
+.PerformanceMonitor_buttonText {
+  white-space: nowrap;
+}
+
+.PerformanceMonitor_popover {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  width: 400px;
+  max-height: 80vh;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.PerformanceMonitor_popoverHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.PerformanceMonitor_popoverTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.PerformanceMonitor_closeButton {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.PerformanceMonitor_closeButton:hover {
+  color: #333;
+}
+
+.PerformanceMonitor_scoreContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background-color: white;
+}
+
+.PerformanceMonitor_scoreCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.PerformanceMonitor_scoreInner {
+  width: 100px;
+  height: 100px;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.PerformanceMonitor_scoreValue {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+}
+
+.PerformanceMonitor_scoreLabel {
+  font-size: 14px;
+  color: #666;
+}
+
+.PerformanceMonitor_resultsContainer {
+  padding: 16px;
+  max-height: calc(80vh - 200px);
+  overflow-y: auto;
+}
+
+.PerformanceMonitor_goodResult {
+  text-align: center;
+  padding: 20px;
+  background-color: #E8F5E9;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
+.PerformanceMonitor_goodResult h3 {
+  margin: 0 0 8px;
+  color: #2E7D32;
+}
+
+.PerformanceMonitor_goodResult p {
+  margin: 0;
+  color: #1B5E20;
+}
+
+.PerformanceMonitor_resultsTitle {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.PerformanceMonitor_issueItem {
+  background-color: #FFF3E0;
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.PerformanceMonitor_issueHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.PerformanceMonitor_issueIcon {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.PerformanceMonitor_issueHeader h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #E65100;
+}
+
+.PerformanceMonitor_issueItem p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  color: #333;
+}
+
+.PerformanceMonitor_suggestion {
+  font-style: italic;
+  color: #666;
+  margin-bottom: 0 !important;
+}
+
+@media (max-width: 480px) {
+  .PerformanceMonitor_container {
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .PerformanceMonitor_analyzeButton {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+  
+  .PerformanceMonitor_popover {
+    width: calc(100% - 20px);
+    bottom: 70px;
+    right: 10px;
+  }
+  
+  .PerformanceMonitor_scoreCircle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .PerformanceMonitor_scoreInner {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .PerformanceMonitor_scoreValue {
+    font-size: 24px;
+  }
+  
+  .PerformanceMonitor_scoreLabel {
+    font-size: 12px;
+  }
+} 

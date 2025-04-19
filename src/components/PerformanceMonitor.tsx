@@ -192,7 +192,7 @@ const checkPerformance = async (): Promise<PerformanceData> => {
   else if (domSize.totalElements > 2000) score -= 35;
   else if (domSize.totalElements > 1000) score -= 25;
 
-  if (domSize.depth > 10) score -= Math.min(10, domSize.depth - 10);
+  if (domSize.depth > 32) score -= Math.min(10, domSize.depth - 10);
   if (imagesAlt.withoutAlt) score -= Math.min(15, imagesAlt.withoutAlt * 2);
   
   if (layoutShift.value > 0.1) {          // 0.1 is Google’s “good” threshold
@@ -315,7 +315,7 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({
 
             {/* results */}
             <div className="PerformanceMonitor_resultsContainer">
-              {data.score >= 95 ? (
+              {data.score >= 99 ? (
                 <div className="PerformanceMonitor_goodResult">
                   <h3>Great job! Your app is performing well.</h3>
                   <p>Keep monitoring as your codebase grows.</p>
@@ -335,10 +335,10 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({
                     />
                   )}
 
-                  {data.domSize.depth > 10 && (
+                  {data.domSize.depth > 32 && (
                     <Issue
                       title="Deep DOM Structure"
-                      detail={`DOM depth is ${data.domSize.depth} (recommended ≤ 10).`}
+                      detail={`DOM depth is ${data.domSize.depth} (recommended ≤ 32) for Single Page Applications.`}
                       suggestion="Flatten nested component trees."
                     />
                   )}

@@ -1,5 +1,78 @@
-import React, { useState, useEffect, useRef } from 'react';
-import  './PerformanceMonitor.css';
+import React, { useEffect, useRef, useState } from "react";
+import "./PerformanceMonitor.css";
+
+/***************************
+ *  GLOBAL INSTRUMENTATION *
+ ***************************/
+
+// Avoid double‑patching when Hot Reload remounts the component
+if (!(window as any).__PM_PATCHED__) {
+  (window as any).__PM_PATCHED__ = true;
+
+  /* ---------- Timers ---------- */
+  let timeoutCount = 0;
+  let intervalCount = 0;
+
+  const _setTimeout = window.setTimeout;
+  const _clearTimeout = window.clearTimeout;
+  const _setInterval = window.setInterval;
+  const _clearInterval = window.clearInterval;
+
+  window.setTimeout = (...args) => {
+    timeoutCount++;
+    return _setTimeout(...args);
+  };
+  window.clearTimeout = (id) => {
+    if (timeoutCount > 0) timeoutCount--;
+    _clearTimeout(id);
+  };
+
+  window.setInterval = (...args) => {
+    intervalCount++;
+    return _setInterval(...args);
+  };
+  window.clearInterval = (id) => {
+    if (intervalCount > 0) intervalCount--;
+    _clearInterval(id);
+  };
+
+  (window as any).__PM_GET_ACTIVE_TIMERS__ = () => timeoutCount + intervalCount;
+
+  /* ---------- Event listeners ---------- */
+  let listenerCount = 0;
+  const _add = EventTarget.prototype.addEventListener;
+  const _remove = EventTarget.prototype.removeEventListener;
+
+  EventTarget.prototype.addEventListener = function (...args) {
+    listenerCount++;
+    // @ts-ignore
+    return _add.apply(this, args);
+  };
+  EventTarget.prototype.removeEventListener = function (...args) {
+    if (listenerCount > 0) listenerCount--;
+    // @ts-ignore
+    return _remove.apply(this, args);
+  };
+
+  (window as any).__PM_GET_EVENT_LISTENERS__ = () => listenerCount;
+
+  /* ---------- Pending fetch ---------- */
+  let pendingFetches = 0;
+  const _fetch : any= window.fetch.bind(window);
+
+  window.fetch = (...args) => {
+    pendingFetches++;
+    return _fetch(...args)?.finally(() => {
+      if (pendingFetches > 0) pendingFetches--;
+    });
+  };
+
+  (window as any).__PM_GET_PENDING_REQUESTS__ = () => pendingFetches;
+}
+
+/***************************
+ * TYPES
+ ***************************/
 
 interface PerformanceData {
   score: number;
@@ -15,7 +88,7 @@ interface PerformanceData {
     elements: Element[];
   };
   layoutShift: {
-    total: number;
+    value: number;
     elements: Element[];
   };
   memoryUsage: {
@@ -24,191 +97,118 @@ interface PerformanceData {
     limitMB: number;
   } | null;
   activeTimers: number;
-  eventListeners: {
-    totalListeners: number;
-  };
+  eventListeners: { totalListeners: number };
   interactionDelay: number;
-  pendingRequests: {
-    total: number;
-    requests: PerformanceEntry[];
-  };
+  pendingRequests: { total: number; requests: PerformanceEntry[] };
 }
+/************  CLS accumulator  ************/
+let clsValue = 0;
+let clsEntries: any[] = [];
 
-
-// Performance monitoring utility functions
-const checkImagesAlt = () => {
-  const images = document.querySelectorAll('img');
-  const imagesWithoutAlt = Array.from(images).filter(img => !img?.hasAttribute('alt'));
-  
-  return {
-    total: images?.length || 0,
-    withoutAlt: imagesWithoutAlt?.length || 0,
-    elements: imagesWithoutAlt || []
-  };
-};
-
-const checkLayoutShift = () => {
-  const elements = document.querySelectorAll('*');
-  let potentialLayoutShifts: Element[] = [];
-  
-  if (elements) {
-    Array.from(elements).forEach(el => {
-      const style = window?.getComputedStyle(el);
-      if (style?.position === 'absolute' || style?.position === 'fixed') {
-        potentialLayoutShifts.push(el);
+if (!("__PM_CLS_OBSERVER__" in window) && "PerformanceObserver" in window) {
+  const clsObserver = new PerformanceObserver(list => {
+    list.getEntries().forEach(e => {
+      const entry = e as any;
+      if (!entry.hadRecentInput && entry.value > 0) {
+        clsValue += entry.value;          // <- accumulate magnitude
+        clsEntries.push(entry);
       }
     });
-  }
-  
-  return {
-    total: potentialLayoutShifts?.length || 0,
-    elements: potentialLayoutShifts || []
-  };
+  });
+
+  clsObserver.observe({ type: "layout-shift", buffered: true });
+  (window as any).__PM_CLS_OBSERVER__ = clsObserver;
+}
+
+/***************************
+ *   METRIC HELPERS
+ ***************************/
+
+const checkImagesAlt = () => {
+  const imgs = Array.from(document.querySelectorAll<HTMLImageElement>("img"));
+  const without = imgs.filter((img) => !(img.getAttribute("alt") ?? "").trim());
+  return { total: imgs.length, withoutAlt: without.length, elements: without };
+};
+
+const getMaxDepth = (el: Element | null, depth = 0): number => {
+  if (!el || el.children.length === 0) return depth;
+  return Math.max(...Array.from(el.children).map((c) => getMaxDepth(c, depth + 1)));
 };
 
 const checkDOMSize = () => {
-  const bodyElements = document?.body?.getElementsByTagName('*')?.length || 0;
-  const headElements = document?.head?.getElementsByTagName('*')?.length || 0;
-  const totalElements = bodyElements + headElements;
-  const depth = getMaxDepth(document?.body);
-  
-  console.log(`DOM Size: ${totalElements} elements (${bodyElements} in body, ${headElements} in head)`);
-  
+  const bodyElements = document.body.getElementsByTagName("*").length;
+  const headElements = document.head.getElementsByTagName("*").length;
   return {
-    totalElements,
-    depth,
+    totalElements: bodyElements + headElements,
+    depth: getMaxDepth(document.body),
     bodyElements,
-    headElements
+    headElements,
   };
 };
 
-const getMaxDepth = (node: Element | null, depth = 0): number => {
-  if (!node?.children || node?.children?.length === 0) return depth;
-  
-  return Math.max(...Array.from(node?.children || []).map(child => getMaxDepth(child, depth + 1)));
+
+/************   helper   ************/
+const checkLayoutShift = () => {
+  // Grab the nodes for developer hints
+  const nodes = new Set<Element>();
+  clsEntries.forEach(e => e.sources?.forEach((s:any) => s.node && nodes.add(s.node!)));
+  // Return both the cumulative value and the offending nodes
+  return { value: +clsValue.toFixed(3), elements: Array.from(nodes) };
 };
 
 const checkMemoryUsage = () => {
-  if ('memory' in performance) {
-    const memory = performance.memory as {
-      usedJSHeapSize: number;
-      totalJSHeapSize: number;
-      jsHeapSizeLimit: number;
-    };
+  if ((performance as any).memory) {
+    const { usedJSHeapSize, totalJSHeapSize, jsHeapSizeLimit } =
+      (performance as any).memory;
+
     return {
-      usedMB: +((memory.usedJSHeapSize || 0) / 1024 / 1024).toFixed(2),
-      totalMB: +((memory.totalJSHeapSize || 0) / 1024 / 1024).toFixed(2),
-      limitMB: +((memory.jsHeapSizeLimit || 0) / 1024 / 1024).toFixed(2),
+      usedMB: +(usedJSHeapSize / 1048576).toFixed(2),
+      totalMB: +(totalJSHeapSize / 1048576).toFixed(2),
+      limitMB: +(jsHeapSizeLimit / 1048576).toFixed(2)
     };
   }
-  return null;
+  return null;   // API not available
 };
-
-const checkActiveTimers = () => {
-  const allTimers = Object.getOwnPropertyNames(window || {})
-    .filter(prop => prop?.startsWith('setInterval') || prop?.startsWith('setTimeout'));
-  return allTimers?.length || 0;
-};
-
-let eventListenerCount = 0;
-const originalAddEventListener = EventTarget?.prototype?.addEventListener;
-if (originalAddEventListener) {
-  EventTarget.prototype.addEventListener = function(...args) {
-    eventListenerCount++;
-    return originalAddEventListener.apply(this, args);
-  };
-}
-
-const checkEventListeners = () => ({
-  totalListeners: eventListenerCount || 0
-});
-
-const measureInteractionDelay = () => {
-  const start = performance?.now() || 0;
-  return new Promise<number>(resolve => {
-    requestAnimationFrame(() => {
-      const delay = (performance?.now() || 0) - start;
-      resolve(delay);
-    });
+const measureInteractionDelay = () =>
+  new Promise<number>((resolve) => {
+    const start = performance.now();
+    requestAnimationFrame(() => resolve(performance.now() - start));
   });
-};
-
-const checkPendingNetworkRequests = () => {
-  const pendingFetches = window?.performance?.getEntriesByType('resource')
-    ?.filter(entry => {
-      const resourceEntry = entry as PerformanceResourceTiming;
-      return resourceEntry.duration > 0 && resourceEntry.responseEnd === 0;
-    }) || [];
-  
-  return {
-    total: pendingFetches?.length || 0,
-    requests: pendingFetches || []
-  };
-};
 
 const checkPerformance = async (): Promise<PerformanceData> => {
   const domSize = checkDOMSize();
   const imagesAlt = checkImagesAlt();
   const layoutShift = checkLayoutShift();
   const memoryUsage = checkMemoryUsage();
-  const activeTimers = checkActiveTimers();
-  const eventListeners = checkEventListeners();
-  const pendingRequests = checkPendingNetworkRequests();
+  const activeTimers = (window as any).__PM_GET_ACTIVE_TIMERS__?.() ?? 0;
+  const totalListeners = (window as any).__PM_GET_EVENT_LISTENERS__?.() ?? 0;
+  const pending = (window as any).__PM_GET_PENDING_REQUESTS__?.() ?? 0;
   const interactionDelay = await measureInteractionDelay();
+
+  /* ---------- score ---------- */
+  let score = 100;
+
+  if (domSize.totalElements > 3000) score -= 50;
+  else if (domSize.totalElements > 2000) score -= 35;
+  else if (domSize.totalElements > 1000) score -= 25;
+
+  if (domSize.depth > 10) score -= Math.min(10, domSize.depth - 10);
+  if (imagesAlt.withoutAlt) score -= Math.min(15, imagesAlt.withoutAlt * 2);
   
-  let maxScore = 100;
-  
-  if (domSize?.totalElements > 3000) {
-    maxScore = 50;
-  } else if (domSize?.totalElements > 2000) {
-    maxScore = 65;
-  } else if (domSize?.totalElements > 1000) {
-    maxScore = 75;
+  if (layoutShift.value > 0.1) {          // 0.1 is Google’s “good” threshold
+    score -= Math.min(10, layoutShift.value * 100); // 0.25 CLS ⇒ –10 pts
   }
-  
-  let score = maxScore;
-  
-  if (domSize && domSize.depth > 10) {
-    score = Math.max(0, score - Math.min(10, (domSize.depth - 10)));
+  if (memoryUsage && memoryUsage.limitMB && memoryUsage.usedMB / memoryUsage.limitMB > 0.3) {
+    score -= Math.min(15, ((memoryUsage.usedMB / memoryUsage.limitMB) - 0.3) * 50);
   }
-  
-  if (imagesAlt && imagesAlt.withoutAlt > 0) {
-    score = Math.max(0, score - Math.min(15, imagesAlt.withoutAlt * 2));
-  }
-  
-  if (layoutShift && layoutShift.total > 0) {
-    score = Math.max(0, score - Math.min(10, layoutShift.total));
-  }
-  
-  if (memoryUsage && memoryUsage.usedMB > 100) {
-    score = Math.max(0, score - Math.min(15, (memoryUsage.usedMB - 100) / 10));
-  }
-  
-  if (activeTimers > 10) {
-    score = Math.max(0, score - Math.min(10, (activeTimers - 10)));
-  }
-  
-  if (eventListeners?.totalListeners > 500) {
-    score = Math.max(0, score - Math.min(15, (eventListeners.totalListeners - 500) / 50));
-  }
-  
-  if (interactionDelay > 100) {
-    score = Math.max(0, score - Math.min(20, (interactionDelay - 100) / 10));
-  }
-  
-  if (pendingRequests?.total > 5) {
-    score = Math.max(0, score - Math.min(10, (pendingRequests.total - 5)));
-  }
-  
-  score = Math.max(0, score);
-  
-  console.log(`DOM size: ${domSize?.totalElements || 0}, max score: ${maxScore}, final score: ${score}`);
-  console.log(`Memory usage: ${memoryUsage ? memoryUsage?.usedMB + 'MB' : 'N/A'}`);
-  console.log(`Active timers: ${activeTimers || 0}`);
-  console.log(`Event listeners: ${eventListeners?.totalListeners || 0}`);
-  console.log(`Interaction delay: ${interactionDelay || 0}ms`);
-  console.log(`Pending requests: ${pendingRequests?.total || 0}`);
-  
+
+  if (activeTimers > 10) score -= Math.min(10, activeTimers - 10);
+  if (totalListeners > 500) score -= Math.min(15, (totalListeners - 500) / 50);
+  if (interactionDelay > 100) score -= Math.min(20, (interactionDelay - 100) / 10);
+  if (pending > 5) score -= Math.min(10, pending - 5);
+
+  if (score < 0) score = 0;
+
   return {
     score,
     domSize,
@@ -216,209 +216,191 @@ const checkPerformance = async (): Promise<PerformanceData> => {
     layoutShift,
     memoryUsage,
     activeTimers,
-    eventListeners,
+    eventListeners: { totalListeners },
     interactionDelay,
-    pendingRequests
+    pendingRequests: { total: pending, requests: [] },
   };
 };
 
-const getScoreColor = (score: number): string => {
-  if (score >= 90) return '#4CAF50';
-  if (score >= 70) return '#FFC107';
-  if (score >= 50) return '#FF9800';
-  return '#F44336';
-};
+/***************************
+ * UI Helpers
+ ***************************/
 
-export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [performanceData, setPerformanceData] = useState(null as PerformanceData | null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const popoverRef = useRef(null as HTMLDivElement | null);
-  
-  const handleAnalyze = async () => {
-    setIsAnalyzing(true);
+const scoreColor = (s: number) =>
+  s >= 90 ? "#4CAF50" : s >= 70 ? "#FFC107" : s >= 50 ? "#FF9800" : "#F44336";
+
+/***************************
+ * THE COMPONENT
+ ***************************/
+
+export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [open, setOpen] = useState(false);
+  const [data, setData] = useState<PerformanceData | null>(null);
+  const [loading, setLoading] = useState(false);
+  const pop = useRef<HTMLDivElement | null>(null);
+
+  const analyze = async () => {
+    setLoading(true);
     try {
-      const data = await checkPerformance();
-      console.log("Performance data:", data);
-      
-      setPerformanceData(data);
-      setIsOpen(true);
-    } catch (error) {
-      console.error("Error analyzing performance:", error);
+      setData(await checkPerformance());
+      setOpen(true);
     } finally {
-      setIsAnalyzing(false);
+      setLoading(false);
     }
   };
-  
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-  
+
+  /* click‑outside */
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (popoverRef?.current && !popoverRef?.current?.contains(event?.target as Node)) {
-        setIsOpen(false);
-      }
+    const handler = (e: MouseEvent) => {
+      if (pop.current && !pop.current.contains(e.target as Node)) setOpen(false);
     };
-    
-    const doc = document;
-    if (doc) {
-      doc.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        doc.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-    return undefined;
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
-  
+
   return (
     <>
       {children}
-      <div className={"PerformanceMonitor_container"}>
-        <button 
-          className={"PerformanceMonitor_analyzeButton"}
-          onClick={handleAnalyze}
-          disabled={isAnalyzing}
+      <div className="PerformanceMonitor_container">
+        <button
+          className="PerformanceMonitor_analyzeButton"
+          onClick={analyze}
+          disabled={loading}
           aria-label="Analyze Performance"
         >
-          <span className={"PerformanceMonitor_buttonIcon"}>{isAnalyzing ? '⏳' : '🔍'}</span>
-          <span className={"PerformanceMonitor_buttonText"}>{isAnalyzing ? 'Analyzing...' : 'Analyze Performance'}</span>
+          <span className="PerformanceMonitor_buttonIcon">
+            {loading ? "⏳" : "🔍"}
+          </span>
+          <span className="PerformanceMonitor_buttonText">
+            {loading ? "Analyzing…" : "Analyze Performance"}
+          </span>
         </button>
-        
-        {isOpen && performanceData && (
-          <div className={"PerformanceMonitor_popover"} ref={popoverRef}>
-            <div className={"PerformanceMonitor_popoverHeader"}>
-              <h2 className={"PerformanceMonitor_popoverTitle"}>Performance Analysis</h2>
-              <button 
-                className={"PerformanceMonitor_closeButton"}
-                onClick={handleClose}
+
+        {open && data && (
+          <div className="PerformanceMonitor_popover" ref={pop}>
+            {/* header */}
+            <div className="PerformanceMonitor_popoverHeader">
+              <h2 className="PerformanceMonitor_popoverTitle">
+                Performance Analysis
+              </h2>
+              <button
+                className="PerformanceMonitor_closeButton"
+                onClick={() => setOpen(false)}
                 aria-label="Close"
               >
                 ×
               </button>
             </div>
-            
-            <div className={"PerformanceMonitor_scoreContainer"}>
-              <div className={"PerformanceMonitor_scoreCircle"} style={{
-                background: `conic-gradient(
-                  ${getScoreColor(performanceData?.score || 0)} ${performanceData?.score || 0}%,
-                  #f0f0f0 ${performanceData?.score || 0}% 100%
-                )`
-              }}>
-                <div className={"PerformanceMonitor_scoreInner"}>
-                  <span className={"PerformanceMonitor_scoreValue"}>{Math.round(performanceData?.score || 0)}</span>
-                  <span className={"PerformanceMonitor_scoreLabel"}>Score</span>
+
+            {/* score donut */}
+            <div className="PerformanceMonitor_scoreContainer">
+              <div
+                className="PerformanceMonitor_scoreCircle"
+                style={{
+                  background: `conic-gradient(${scoreColor(
+                    data.score
+                  )} ${data.score}%, #f0f0f0 ${data.score}% 100%)`,
+                }}
+              >
+                <div className="PerformanceMonitor_scoreInner">
+                  <span className="PerformanceMonitor_scoreValue">
+                    {Math.round(data.score)}
+                  </span>
+                  <span className="PerformanceMonitor_scoreLabel">Score</span>
                 </div>
               </div>
             </div>
-            
-            <div className={"PerformanceMonitor_resultsContainer"}>
-              {performanceData?.score >= 90 ? (
-                <div className={"PerformanceMonitor_goodResult"}>
-                  <h3>Great job! Your application is performing well.</h3>
-                  <p>Keep up the good work and continue to monitor performance as your application grows.</p>
+
+            {/* results */}
+            <div className="PerformanceMonitor_resultsContainer">
+              {data.score >= 95 ? (
+                <div className="PerformanceMonitor_goodResult">
+                  <h3>Great job! Your app is performing well.</h3>
+                  <p>Keep monitoring as your codebase grows.</p>
                 </div>
               ) : (
                 <>
-                  <h3 className={"PerformanceMonitor_resultsTitle"}>Areas for Improvement:</h3>
-                  
-                  {performanceData?.domSize?.totalElements > 1000 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Large DOM Size</h4>
-                      </div>
-                      <p>Your DOM contains {performanceData?.domSize?.totalElements || 0} elements, which is above the recommended limit of 1000.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Consider reducing the number of DOM elements by simplifying your component structure.</p>
-                    </div>
+                  <h3 className="PerformanceMonitor_resultsTitle">
+                    Areas for Improvement:
+                  </h3>
+
+                  {/* list of issues (rendered only when triggered) */}
+                  {data.domSize.totalElements > 1000 && (
+                    <Issue
+                      title="Large DOM Size"
+                      detail={`DOM has ${data.domSize.totalElements} elements (limit ≈ 1000).`}
+                      suggestion="Simplify or virtualise parts of the UI."
+                    />
                   )}
-                  
-                  {performanceData?.domSize?.depth > 10 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Deep DOM Structure</h4>
-                      </div>
-                      <p>Your DOM has a depth of {performanceData?.domSize?.depth || 0} levels, which is above the recommended limit of 10.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Consider flattening your component hierarchy to improve rendering performance.</p>
-                    </div>
+
+                  {data.domSize.depth > 10 && (
+                    <Issue
+                      title="Deep DOM Structure"
+                      detail={`DOM depth is ${data.domSize.depth} (recommended ≤ 10).`}
+                      suggestion="Flatten nested component trees."
+                    />
                   )}
-                  
-                  {performanceData?.imagesAlt?.withoutAlt > 0 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Images Without Alt Text</h4>
-                      </div>
-                      <p>Found {performanceData?.imagesAlt?.withoutAlt || 0} images without alt attributes.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Add descriptive alt text to all images for accessibility and SEO benefits.</p>
-                    </div>
+
+                  {data.imagesAlt.withoutAlt > 0 && (
+                    <Issue
+                      title="Missing Image Alts"
+                      detail={`${data.imagesAlt.withoutAlt} image(s) lack alt attributes.`}
+                      suggestion="Add descriptive alt text."
+                    />
                   )}
-                  
-                  {performanceData?.layoutShift?.total > 0 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Potential Layout Shifts</h4>
-                      </div>
-                      <p>Detected {performanceData?.layoutShift?.total || 0} elements that might cause layout shifts.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Ensure elements have defined dimensions and avoid inserting content above existing content.</p>
-                    </div>
+
+                  {data.layoutShift.value > 0 && (
+                    <Issue
+                      title="Layout Shifts Detected"
+                      detail={`CLS score ${data.layoutShift.value.toFixed(3)} across ${
+                        data.layoutShift.elements.length
+                      } element(s).`}
+                      suggestion="Reserve space for images/ads and avoid inserting content above existing UI."
+                    />
                   )}
-                  
-                  {performanceData?.memoryUsage && performanceData?.memoryUsage?.usedMB > 100 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>High Memory Usage</h4>
-                      </div>
-                      <p>Your application is using {performanceData?.memoryUsage?.usedMB || 0}MB of memory, which is above the recommended limit of 100MB.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Optimize memory usage by reducing object allocations, implementing proper cleanup, and avoiding memory leaks.</p>
-                    </div>
+
+                  {data.memoryUsage && data.memoryUsage.usedMB > 100 && (
+                    <Issue
+                      title="High Memory Usage"
+                      detail={`Using ${data.memoryUsage.usedMB} MB (target ≤ 100 MB).`}
+                      suggestion="Release large objects and watch for leaks."
+                    />
                   )}
-                  
-                  {performanceData?.activeTimers > 10 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Too Many Active Timers</h4>
-                      </div>
-                      <p>Your application has {performanceData?.activeTimers || 0} active timers, which is above the recommended limit of 10.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Ensure all setInterval and setTimeout calls are properly cleared when components unmount.</p>
-                    </div>
+
+                  {data.activeTimers > 10 && (
+                    <Issue
+                      title="Too Many Active Timers"
+                      detail={`${data.activeTimers} active timeouts/intervals (limit ≈ 10).`}
+                      suggestion="Clear timers on unmount, replace polling with events."
+                    />
                   )}
-                  
-                  {performanceData?.eventListeners?.totalListeners > 500 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Too Many Event Listeners</h4>
-                      </div>
-                      <p>Your application has {performanceData?.eventListeners?.totalListeners || 0} event listeners, which is above the recommended limit of 500.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Ensure all event listeners are properly removed when components unmount to prevent memory leaks.</p>
-                    </div>
+
+                  {data.eventListeners.totalListeners > 500 && (
+                    <Issue
+                      title="Excessive Event Listeners"
+                      detail={`${data.eventListeners.totalListeners} listeners attached (limit ≈ 500).`}
+                      suggestion="Remove listeners on cleanup, delegate where possible."
+                    />
                   )}
-                  
-                  {performanceData?.interactionDelay > 100 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Slow Interaction Response</h4>
-                      </div>
-                      <p>Your application has an interaction delay of {Math.round(performanceData?.interactionDelay || 0)}ms, which is above the recommended limit of 100ms.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Optimize JavaScript execution, reduce main thread work, and consider using web workers for heavy computations.</p>
-                    </div>
+
+                  {data.interactionDelay > 100 && (
+                    <Issue
+                      title="Slow Interaction Response"
+                      detail={`Interaction delay ${Math.round(
+                        data.interactionDelay
+                      )} ms (target ≤ 100 ms).`}
+                      suggestion="Move heavy work off main thread or use Web Workers."
+                    />
                   )}
-                  
-                  {performanceData?.pendingRequests?.total > 5 && (
-                    <div className={"PerformanceMonitor_issueItem"}>
-                      <div className={"PerformanceMonitor_issueHeader"}>
-                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
-                        <h4>Too Many Pending Network Requests</h4>
-                      </div>
-                      <p>Your application has {performanceData?.pendingRequests?.total || 0} pending network requests, which is above the recommended limit of 5.</p>
-                      <p className={"PerformanceMonitor_suggestion"}>Implement proper request cancellation, use request batching, and consider using a request queue to limit concurrent requests.</p>
-                    </div>
+
+                  {data.pendingRequests.total > 5 && (
+                    <Issue
+                      title="Many Pending Requests"
+                      detail={`${data.pendingRequests.total} concurrent fetches (limit ≈ 5).`}
+                      suggestion="Batch requests or debounce API calls."
+                    />
                   )}
                 </>
               )}
@@ -430,4 +412,21 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ ch
   );
 };
 
-export default PerformanceMonitor; 
+/* helper sub‑component */
+interface IssueProps {
+  title: string;
+  detail: string;
+  suggestion: string;
+}
+const Issue: React.FC<IssueProps> = ({ title, detail, suggestion }) => (
+  <div className="PerformanceMonitor_issueItem">
+    <div className="PerformanceMonitor_issueHeader">
+      <span className="PerformanceMonitor_issueIcon">⚠️</span>
+      <h4>{title}</h4>
+    </div>
+    <p>{detail}</p>
+    <p className="PerformanceMonitor_suggestion">{suggestion}</p>
+  </div>
+);
+
+export default PerformanceMonitor;

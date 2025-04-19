@@ -11,7 +11,6 @@ A powerful React performance monitoring component that helps you identify and fi
 - 🎯 Specific improvement suggestions
 - 🚀 Easy integration
 - 📱 Responsive design
-- 🎨 Customizable UI
 
 ## Installation
 
@@ -19,7 +18,7 @@ It is recommended to start the localhost on chrome for this package, as per some
 
 ```bash
 npm install react-insight
-# or
+# or (PREFERED)
 yarn add react-insight
 ```
 

@@ -27,6 +27,7 @@ yarn add react-insight
 
 ```jsx
 import React from 'react';
+import  'react-insight/dist/index.css'
 import { PerformanceMonitor } from 'react-insight';
 
 function App() {

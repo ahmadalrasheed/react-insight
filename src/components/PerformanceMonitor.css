@@ -1,11 +1,11 @@
-.container {
+.PerformanceMonitor_container {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 9999;
 }
 
-.analyzeButton {
+.PerformanceMonitor_analyzeButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21,26 +21,26 @@
   transition: all 0.2s ease;
 }
 
-.analyzeButton:hover {
+.PerformanceMonitor_analyzeButton:hover {
   background-color: #1976D2;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.analyzeButton:disabled {
+.PerformanceMonitor_analyzeButton:disabled {
   background-color: #BDBDBD;
   cursor: not-allowed;
 }
 
-.buttonIcon {
+.PerformanceMonitor_buttonIcon {
   margin-right: 8px;
   font-size: 16px;
 }
 
-.buttonText {
+.PerformanceMonitor_buttonText {
   white-space: nowrap;
 }
 
-.popover {
+.PerformanceMonitor_popover {
   position: fixed;
   bottom: 80px;
   right: 20px;
@@ -53,7 +53,7 @@
   z-index: 9999;
 }
 
-.popoverHeader {
+.PerformanceMonitor_popoverHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -62,14 +62,14 @@
   border-bottom: 1px solid #e0e0e0;
 }
 
-.popoverTitle {
+.PerformanceMonitor_popoverTitle {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #333;
 }
 
-.closeButton {
+.PerformanceMonitor_closeButton {
   background: none;
   border: none;
   font-size: 24px;
@@ -79,18 +79,18 @@
   line-height: 1;
 }
 
-.closeButton:hover {
+.PerformanceMonitor_closeButton:hover {
   color: #333;
 }
 
-.scoreContainer {
+.PerformanceMonitor_scoreContainer {
   display: flex;
   justify-content: center;
   padding: 20px;
   background-color: white;
 }
 
-.scoreCircle {
+.PerformanceMonitor_scoreCircle {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -100,7 +100,7 @@
   position: relative;
 }
 
-.scoreInner {
+.PerformanceMonitor_scoreInner {
   width: 100px;
   height: 100px;
   background-color: white;
@@ -111,24 +111,24 @@
   justify-content: center;
 }
 
-.scoreValue {
+.PerformanceMonitor_scoreValue {
   font-size: 32px;
   font-weight: 700;
   color: #333;
 }
 
-.scoreLabel {
+.PerformanceMonitor_scoreLabel {
   font-size: 14px;
   color: #666;
 }
 
-.resultsContainer {
+.PerformanceMonitor_resultsContainer {
   padding: 16px;
   max-height: calc(80vh - 200px);
   overflow-y: auto;
 }
 
-.goodResult {
+.PerformanceMonitor_goodResult {
   text-align: center;
   padding: 20px;
   background-color: #E8F5E9;
@@ -136,92 +136,92 @@
   margin-bottom: 16px;
 }
 
-.goodResult h3 {
+.PerformanceMonitor_goodResult h3 {
   margin: 0 0 8px;
   color: #2E7D32;
 }
 
-.goodResult p {
+.PerformanceMonitor_goodResult p {
   margin: 0;
   color: #1B5E20;
 }
 
-.resultsTitle {
+.PerformanceMonitor_resultsTitle {
   margin: 0 0 16px;
   font-size: 16px;
   font-weight: 600;
   color: #333;
 }
 
-.issueItem {
+.PerformanceMonitor_issueItem {
   background-color: #FFF3E0;
   border-radius: 4px;
   padding: 16px;
   margin-bottom: 12px;
 }
 
-.issueHeader {
+.PerformanceMonitor_issueHeader {
   display: flex;
   align-items: center;
   margin-bottom: 8px;
 }
 
-.issueIcon {
+.PerformanceMonitor_issueIcon {
   margin-right: 8px;
   font-size: 18px;
 }
 
-.issueHeader h4 {
+.PerformanceMonitor_issueHeader h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
   color: #E65100;
 }
 
-.issueItem p {
+.PerformanceMonitor_issueItem p {
   margin: 0 0 8px;
   font-size: 14px;
   color: #333;
 }
 
-.suggestion {
+.PerformanceMonitor_suggestion {
   font-style: italic;
   color: #666;
   margin-bottom: 0 !important;
 }
 
 @media (max-width: 480px) {
-  .container {
+  .PerformanceMonitor_container {
     bottom: 10px;
     right: 10px;
   }
   
-  .analyzeButton {
+  .PerformanceMonitor_analyzeButton {
     padding: 8px 16px;
     font-size: 12px;
   }
   
-  .popover {
+  .PerformanceMonitor_popover {
     width: calc(100% - 20px);
     bottom: 70px;
     right: 10px;
   }
   
-  .scoreCircle {
+  .PerformanceMonitor_scoreCircle {
     width: 100px;
     height: 100px;
   }
   
-  .scoreInner {
+  .PerformanceMonitor_scoreInner {
     width: 80px;
     height: 80px;
   }
   
-  .scoreValue {
+  .PerformanceMonitor_scoreValue {
     font-size: 24px;
   }
   
-  .scoreLabel {
+  .PerformanceMonitor_scoreLabel {
     font-size: 12px;
   }
 } 

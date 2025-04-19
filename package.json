@@ -1,6 +1,6 @@
 {
   "name": "react-insight",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "A powerful React performance monitoring component that helps you identify and fix performance issues in your React applications",
   "author": "ahmadalrasheed",
   "license": "MIT",
@@ -11,7 +11,7 @@
   "source": "src/index.ts",
   "files": [
     "dist",
-    "src/components/PerformanceMonitor.module.css",
+    "src/components/PerformanceMonitor.css",
     "README.md"
   ],
   "engines": {

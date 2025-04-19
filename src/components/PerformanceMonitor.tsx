@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import styles from './PerformanceMonitor.module.css';
+import  './PerformanceMonitor.css';
 
 interface PerformanceData {
   score: number;
@@ -274,23 +274,23 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ ch
   return (
     <>
       {children}
-      <div className={styles?.container}>
+      <div className={"PerformanceMonitor_container"}>
         <button 
-          className={styles?.analyzeButton}
+          className={"PerformanceMonitor_analyzeButton"}
           onClick={handleAnalyze}
           disabled={isAnalyzing}
           aria-label="Analyze Performance"
         >
-          <span className={styles?.buttonIcon}>{isAnalyzing ? '⏳' : '🔍'}</span>
-          <span className={styles?.buttonText}>{isAnalyzing ? 'Analyzing...' : 'Analyze Performance'}</span>
+          <span className={"PerformanceMonitor_buttonIcon"}>{isAnalyzing ? '⏳' : '🔍'}</span>
+          <span className={"PerformanceMonitor_buttonText"}>{isAnalyzing ? 'Analyzing...' : 'Analyze Performance'}</span>
         </button>
         
         {isOpen && performanceData && (
-          <div className={styles?.popover} ref={popoverRef}>
-            <div className={styles?.popoverHeader}>
-              <h2 className={styles?.popoverTitle}>Performance Analysis</h2>
+          <div className={"PerformanceMonitor_popover"} ref={popoverRef}>
+            <div className={"PerformanceMonitor_popoverHeader"}>
+              <h2 className={"PerformanceMonitor_popoverTitle"}>Performance Analysis</h2>
               <button 
-                className={styles?.closeButton}
+                className={"PerformanceMonitor_closeButton"}
                 onClick={handleClose}
                 aria-label="Close"
               >
@@ -298,126 +298,126 @@ export const PerformanceMonitor: React.FC<{ children: React.ReactNode }> = ({ ch
               </button>
             </div>
             
-            <div className={styles?.scoreContainer}>
-              <div className={styles?.scoreCircle} style={{
+            <div className={"PerformanceMonitor_scoreContainer"}>
+              <div className={"PerformanceMonitor_scoreCircle"} style={{
                 background: `conic-gradient(
                   ${getScoreColor(performanceData?.score || 0)} ${performanceData?.score || 0}%,
                   #f0f0f0 ${performanceData?.score || 0}% 100%
                 )`
               }}>
-                <div className={styles?.scoreInner}>
-                  <span className={styles?.scoreValue}>{Math.round(performanceData?.score || 0)}</span>
-                  <span className={styles?.scoreLabel}>Score</span>
+                <div className={"PerformanceMonitor_scoreInner"}>
+                  <span className={"PerformanceMonitor_scoreValue"}>{Math.round(performanceData?.score || 0)}</span>
+                  <span className={"PerformanceMonitor_scoreLabel"}>Score</span>
                 </div>
               </div>
             </div>
             
-            <div className={styles?.resultsContainer}>
+            <div className={"PerformanceMonitor_resultsContainer"}>
               {performanceData?.score >= 90 ? (
-                <div className={styles?.goodResult}>
+                <div className={"PerformanceMonitor_goodResult"}>
                   <h3>Great job! Your application is performing well.</h3>
                   <p>Keep up the good work and continue to monitor performance as your application grows.</p>
                 </div>
               ) : (
                 <>
-                  <h3 className={styles?.resultsTitle}>Areas for Improvement:</h3>
+                  <h3 className={"PerformanceMonitor_resultsTitle"}>Areas for Improvement:</h3>
                   
                   {performanceData?.domSize?.totalElements > 1000 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Large DOM Size</h4>
                       </div>
                       <p>Your DOM contains {performanceData?.domSize?.totalElements || 0} elements, which is above the recommended limit of 1000.</p>
-                      <p className={styles?.suggestion}>Consider reducing the number of DOM elements by simplifying your component structure.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Consider reducing the number of DOM elements by simplifying your component structure.</p>
                     </div>
                   )}
                   
                   {performanceData?.domSize?.depth > 10 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Deep DOM Structure</h4>
                       </div>
                       <p>Your DOM has a depth of {performanceData?.domSize?.depth || 0} levels, which is above the recommended limit of 10.</p>
-                      <p className={styles?.suggestion}>Consider flattening your component hierarchy to improve rendering performance.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Consider flattening your component hierarchy to improve rendering performance.</p>
                     </div>
                   )}
                   
                   {performanceData?.imagesAlt?.withoutAlt > 0 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Images Without Alt Text</h4>
                       </div>
                       <p>Found {performanceData?.imagesAlt?.withoutAlt || 0} images without alt attributes.</p>
-                      <p className={styles?.suggestion}>Add descriptive alt text to all images for accessibility and SEO benefits.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Add descriptive alt text to all images for accessibility and SEO benefits.</p>
                     </div>
                   )}
                   
                   {performanceData?.layoutShift?.total > 0 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Potential Layout Shifts</h4>
                       </div>
                       <p>Detected {performanceData?.layoutShift?.total || 0} elements that might cause layout shifts.</p>
-                      <p className={styles?.suggestion}>Ensure elements have defined dimensions and avoid inserting content above existing content.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Ensure elements have defined dimensions and avoid inserting content above existing content.</p>
                     </div>
                   )}
                   
                   {performanceData?.memoryUsage && performanceData?.memoryUsage?.usedMB > 100 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>High Memory Usage</h4>
                       </div>
                       <p>Your application is using {performanceData?.memoryUsage?.usedMB || 0}MB of memory, which is above the recommended limit of 100MB.</p>
-                      <p className={styles?.suggestion}>Optimize memory usage by reducing object allocations, implementing proper cleanup, and avoiding memory leaks.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Optimize memory usage by reducing object allocations, implementing proper cleanup, and avoiding memory leaks.</p>
                     </div>
                   )}
                   
                   {performanceData?.activeTimers > 10 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Too Many Active Timers</h4>
                       </div>
                       <p>Your application has {performanceData?.activeTimers || 0} active timers, which is above the recommended limit of 10.</p>
-                      <p className={styles?.suggestion}>Ensure all setInterval and setTimeout calls are properly cleared when components unmount.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Ensure all setInterval and setTimeout calls are properly cleared when components unmount.</p>
                     </div>
                   )}
                   
                   {performanceData?.eventListeners?.totalListeners > 500 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Too Many Event Listeners</h4>
                       </div>
                       <p>Your application has {performanceData?.eventListeners?.totalListeners || 0} event listeners, which is above the recommended limit of 500.</p>
-                      <p className={styles?.suggestion}>Ensure all event listeners are properly removed when components unmount to prevent memory leaks.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Ensure all event listeners are properly removed when components unmount to prevent memory leaks.</p>
                     </div>
                   )}
                   
                   {performanceData?.interactionDelay > 100 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Slow Interaction Response</h4>
                       </div>
                       <p>Your application has an interaction delay of {Math.round(performanceData?.interactionDelay || 0)}ms, which is above the recommended limit of 100ms.</p>
-                      <p className={styles?.suggestion}>Optimize JavaScript execution, reduce main thread work, and consider using web workers for heavy computations.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Optimize JavaScript execution, reduce main thread work, and consider using web workers for heavy computations.</p>
                     </div>
                   )}
                   
                   {performanceData?.pendingRequests?.total > 5 && (
-                    <div className={styles?.issueItem}>
-                      <div className={styles?.issueHeader}>
-                        <span className={styles?.issueIcon}>⚠️</span>
+                    <div className={"PerformanceMonitor_issueItem"}>
+                      <div className={"PerformanceMonitor_issueHeader"}>
+                        <span className={"PerformanceMonitor_issueIcon"}>⚠️</span>
                         <h4>Too Many Pending Network Requests</h4>
                       </div>
                       <p>Your application has {performanceData?.pendingRequests?.total || 0} pending network requests, which is above the recommended limit of 5.</p>
-                      <p className={styles?.suggestion}>Implement proper request cancellation, use request batching, and consider using a request queue to limit concurrent requests.</p>
+                      <p className={"PerformanceMonitor_suggestion"}>Implement proper request cancellation, use request batching, and consider using a request queue to limit concurrent requests.</p>
                     </div>
                   )}
                 </>

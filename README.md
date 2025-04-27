@@ -23,6 +23,7 @@ yarn add react-insight
 ```
 
 ## Quick Start
+Wrap your application with the `PerformanceMonitor` component:
 
 ```jsx
 import React from 'react';
@@ -51,35 +52,6 @@ React Insight monitors several key performance metrics:
 - **Network Requests**: Monitors pending network requests
 - **Layout Shifts**: Detects potential layout instability
 - **Image Optimization**: Checks for missing alt attributes and large images
-
-## Usage
-
-### Basic Usage
-
-Wrap your application with the `PerformanceMonitor` component:
-
-```jsx
-import { PerformanceMonitor } from 'react-insight';
-
-function App() {
-  return (
-    <PerformanceMonitor>
-      <YourApp />
-    </PerformanceMonitor>
-  );
-}
-```
-
-### Customization
-
-You can customize the appearance and behavior using CSS modules:
-
-```css
-/* Your custom styles */
-.container {
-  /* Override default styles */
-}
-```
 
 ## Performance Score Calculation
 
